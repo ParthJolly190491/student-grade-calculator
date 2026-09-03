@@ -37,18 +37,25 @@ jobs:
 
       - name: Install Bun
         run: |
-          if (-not (Test-Path "$env:BUN_EXE")) {
-            Write-Host "Installing Bun to $env:BUN_DIR"
-            Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip"
+          # First check if bun is already available anywhere on PATH
+          $bunCmd = Get-Command bun -ErrorAction SilentlyContinue
+          if ($bunCmd) {
+            Write-Host "Bun found at: $($bunCmd.Source)"
+            Write-Host "Copying to $env:BUN_DIR"
+            Copy-Item -Path $bunCmd.Source -Destination "$env:BUN_DIR\bun.exe" -Force
+          } else {
+            Write-Host "Bun not on PATH, downloading..."
             New-Item -Path "$env:BUN_DIR" -ItemType Directory -Force | Out-Null
+            # Try the latest release directly (avoids redirect from /latest/)
+            Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip" -TimeoutSec 120
             Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:BUN_DIR" -Force
-            Remove-Item "$env:TEMP\bun.zip"
+            Remove-Item "$env:TEMP\bun.zip" -ErrorAction SilentlyContinue
           }
           # Add bun's directory to GITHUB_PATH so subsequent steps and the action's
           # internal sub-shells (Install Dependencies, post-steps) can call 'bun' directly.
           Add-Content $env:GITHUB_PATH "$env:BUN_DIR"
-          Write-Host "Added $env:BUN_DIR to PATH"
-          Write-Host "Bun version: $(& $env:BUN_EXE --version)"
+          Write-Host "PATH now includes $env:BUN_DIR"
+          Write-Host "Bun version: & $env:BUN_DIR\bun.exe --version"
 
       - name: Install dependencies
         run: |
