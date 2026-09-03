@@ -72,9 +72,10 @@ jobs:
       - name: Install Bun
         shell: powershell
         run: |
-          # Skip if already installed in a previous run
-          if (Test-Path "$env:BUN_DIR\bun.exe") {
-            Write-Host "Bun already installed at $env:BUN_DIR"
+          # Skip if already installed
+          $bunExe = "$env:BUN_DIR\bun-windows-x64\bun.exe"
+          if (Test-Path $bunExe) {
+            Write-Host "Bun already installed at $bunExe"
           } else {
             Write-Host "Installing Bun to $env:BUN_DIR"
             New-Item -Path "$env:BUN_DIR" -ItemType Directory -Force | Out-Null
@@ -84,10 +85,12 @@ jobs:
               -TimeoutSec 120
             Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:BUN_DIR" -Force
             Remove-Item "$env:TEMP\bun.zip" -ErrorAction SilentlyContinue
-            Write-Host "Bun installed."
+            Write-Host "Bun installed at $bunExe"
           }
-          # Add bun's directory to PATH for the action's sub-shells
-          Add-Content $env:GITHUB_PATH "$env:BUN_DIR"
+          # Copy bun.exe up one level so it can be found at BUN_DIR\bun.exe
+          # (the zip extracts to BUN_DIR\bun-windows-x64\bun.exe)
+          Copy-Item -Path "$env:BUN_DIR\bun-windows-x64\bun.exe" -Destination "$env:BUN_DIR\bun.exe" -Force
+          Write-Host "Copied bun.exe to $env:BUN_DIR\bun.exe"
 
       - name: Install dependencies
         shell: powershell
