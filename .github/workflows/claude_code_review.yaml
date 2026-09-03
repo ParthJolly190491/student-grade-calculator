@@ -18,12 +18,8 @@ jobs:
       id-token: write
 
     env:
-      # Pre-install Bun to this location so the action finds it without needing setup-bun
       BUN_DIR: ${{ github.workspace }}\bun
       BUN_EXE: ${{ github.workspace }}\bun\bun.exe
-      # Prepend bun's directory to PATH for all steps and action sub-shells.
-      # env.PATH resolves to the runner's default PATH (no circular ref at job level).
-      PATH: ${{ github.workspace }}\bun;${{ env.PATH }}
 
     steps:
       - name: Checkout code
@@ -48,7 +44,11 @@ jobs:
             Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:BUN_DIR" -Force
             Remove-Item "$env:TEMP\bun.zip"
           }
-          Write-Host "Bun installed at $env:BUN_EXE"
+          # Add bun's directory to GITHUB_PATH so subsequent steps and the action's
+          # internal sub-shells (Install Dependencies, post-steps) can call 'bun' directly.
+          Add-Content $env:GITHUB_PATH "$env:BUN_DIR"
+          Write-Host "Added $env:BUN_DIR to PATH"
+          Write-Host "Bun version: $(& $env:BUN_EXE --version)"
 
       - name: Install dependencies
         run: |
