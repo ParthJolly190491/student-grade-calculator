@@ -108,6 +108,8 @@ jobs:
           # Claude Code sends requests to OmniRoute.
           # Do NOT add /v1 here.
           ANTHROPIC_BASE_URL: http://localhost:20128
+          # Bypass the model catalog check for openrouter/free
+          CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT: 1
         with:
           # Skip the action's internal bun installer (which requires admin/symlinks).
           # We pre-install bun above and pass the path here.

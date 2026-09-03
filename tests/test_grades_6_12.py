@@ -9,6 +9,7 @@ from grades_6_12 import (
     is_passing,
     get_passing_percentage,
     count_failing,
+    get_grade_distribution,
 )
 
 
@@ -136,3 +137,18 @@ def test_count_failing_single_failing():
 def test_count_failing_empty_list_raises():
     with pytest.raises(ValueError):
         count_failing([])
+
+
+# ── get_grade_distribution ────────────────────────────────────────────────
+
+def test_get_grade_distribution_returns_all_grades():
+    result = get_grade_distribution([95, 85, 75, 65, 55])
+    assert result == {"A": 1, "B": 1, "C": 1, "D": 1, "F": 1}
+
+def test_get_grade_distribution_all_same_grade():
+    result = get_grade_distribution([95, 92, 91])
+    assert result == {"A": 3, "B": 0, "C": 0, "D": 0, "F": 0}
+
+def test_get_grade_distribution_empty_list_raises():
+    with pytest.raises(ValueError):
+        get_grade_distribution([])
