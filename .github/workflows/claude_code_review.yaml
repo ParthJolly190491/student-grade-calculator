@@ -23,6 +23,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Add Git Bash and Bun to PATH
+        run: |
+          # Add Git Bash (from Chocolatey or standard install) to PATH
+          if (Test-Path "C:\Program Files\Git\usr\bin\bash.exe") {
+            Write-Host "Adding Git Bash to PATH"
+            Add-Content $env:GITHUB_PATH "C:\Program Files\Git\usr\bin"
+          }
+          # Download and install Bun directly (avoids setup-bun symlink EPERM issue)
+          if (-not (Get-Command bun -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing Bun..."
+            Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip"
+            Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:LOCALAPPDATA\bun" -Force
+            Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\bun\bun-windows-x64"
+          } else {
+            Write-Host "Bun already installed at $(Get-Command bun | Select-Object -ExpandProperty Source)"
+          }
+
       - name: Install dependencies
         run: |
           python -m pip install pytest
