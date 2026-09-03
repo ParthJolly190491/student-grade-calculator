@@ -17,6 +17,11 @@ jobs:
       pull-requests: write
       id-token: write
 
+    env:
+      # Pre-install Bun to this location so the action finds it without needing setup-bun
+      BUN_DIR: ${{ github.workspace }}\bun
+      BUN_EXE: ${{ github.workspace }}\bun\bun.exe
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,17 +38,14 @@ jobs:
 
       - name: Install Bun
         run: |
-          $BUN_DIR = "${{ github.workspace }}\bun"
-          if (-not (Test-Path "$BUN_DIR\bun.exe")) {
-            Write-Host "Installing Bun to $BUN_DIR"
+          if (-not (Test-Path "$env:BUN_EXE")) {
+            Write-Host "Installing Bun to $env:BUN_DIR"
             Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip"
-            New-Item -Path "$BUN_DIR" -ItemType Directory -Force | Out-Null
-            Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$BUN_DIR" -Force
+            New-Item -Path "$env:BUN_DIR" -ItemType Directory -Force | Out-Null
+            Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:BUN_DIR" -Force
             Remove-Item "$env:TEMP\bun.zip"
-            Write-Host "Bun installed at $BUN_DIR\bun.exe"
-          } else {
-            Write-Host "Bun already exists at $BUN_DIR\bun.exe"
           }
+          Write-Host "Bun installed at $env:BUN_EXE"
 
       - name: Install dependencies
         run: |
@@ -58,6 +60,9 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: http://localhost:20128
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.OMNIROUTE_API_KEY }}
+          # Pass bun path as env var so the action's internal sub-steps can find it
+          # (the with: input only reaches the action's top-level logic, not sub-steps)
+          PATH_TO_BUN_EXECUTABLE: ${{ github.workspace }}\bun\bun.exe
         with:
           path_to_bun_executable: ${{ github.workspace }}\bun\bun.exe
           prompt: |
