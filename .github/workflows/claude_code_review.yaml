@@ -21,6 +21,9 @@ jobs:
       # Pre-install Bun to this location so the action finds it without needing setup-bun
       BUN_DIR: ${{ github.workspace }}\bun
       BUN_EXE: ${{ github.workspace }}\bun\bun.exe
+      # Prepend bun's directory to PATH for all steps and action sub-shells.
+      # env.PATH resolves to the runner's default PATH (no circular ref at job level).
+      PATH: ${{ github.workspace }}\bun;${{ env.PATH }}
 
     steps:
       - name: Checkout code
@@ -59,7 +62,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         env:
           ANTHROPIC_BASE_URL: http://localhost:20128
-          ANTHROPIC_AUTH_TOKEN: ${{ secrets.OMNIROUTE_API_KEY }}
+          # The action reads ANTHROPIC_API_KEY (not ANTHROPIC_AUTH_TOKEN) for auth,
+          # so we map our OMNIROUTE_API_KEY secret to that name.
+          ANTHROPIC_API_KEY: ${{ secrets.OMNIROUTE_API_KEY }}
           # Pass bun path as env var so the action's internal sub-steps can find it
           # (the with: input only reaches the action's top-level logic, not sub-steps)
           PATH_TO_BUN_EXECUTABLE: ${{ github.workspace }}\bun\bun.exe
