@@ -63,6 +63,12 @@ jobs:
             exit 1
           }
 
+          # Add Git Bash to PATH for the action's sub-shells (which use 'shell: bash')
+          if (Test-Path "C:\Program Files\Git\usr\bin\bash.exe") {
+            Add-Content $env:GITHUB_PATH "C:\Program Files\Git\usr\bin"
+            Write-Host "Added Git Bash to PATH"
+          }
+
       - name: Install Bun
         shell: powershell
         run: |
