@@ -187,3 +187,20 @@ def get_grade_distribution(scores: list[float]) -> dict[str, int]:
         letter = calculate_letter_grade(score)
         distribution[letter] += 1
     return distribution
+
+
+def find_top_score(scores: list[float]) -> float:
+    """Find the highest score in a list.
+
+    Args:
+        scores: List of numeric scores between 0 and 100.
+
+    Returns:
+        The highest score in the list.
+
+    Raises:
+        ValueError: If scores list is empty or any score is out of range.
+    """
+    if not scores:
+        raise ValueError("scores list cannot be empty")
+    return max(scores)
