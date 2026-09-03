@@ -12,6 +12,7 @@ from grades_6_12 import (
     get_grade_distribution,
     find_top_score,
     find_lowest_score,
+    calculate_score_range,
 )
 
 
@@ -180,3 +181,16 @@ def test_find_lowest_score_single_score():
 def test_find_lowest_score_empty_list_raises():
     with pytest.raises(ValueError):
         find_lowest_score([])
+
+
+# ── calculate_score_range ─────────────────────────────────────────────────
+
+def test_calculate_score_range_returns_difference():
+    assert calculate_score_range([75, 92, 88, 95]) == 20.0
+
+def test_calculate_score_range_single_score():
+    assert calculate_score_range([85]) == 0.0
+
+def test_calculate_score_range_empty_list_raises():
+    with pytest.raises(ValueError):
+        calculate_score_range([])
