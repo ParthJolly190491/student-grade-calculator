@@ -1,12 +1,11 @@
-# tests/test_grades.py — Student Grade Calculator Tests
+# tests/test_grades_6_12.py — Student Grade Calculator Tests
 
 import pytest
-from grades import (
+from grades_6_12 import (is_passing, 
     calculate_letter_grade,
     calculate_average,
     calculate_gpa,
-    get_student_summary,
-)
+    get_student_summary)
 
 
 # ── calculate_letter_grade ─────────────────────────────────────────────────
@@ -75,3 +74,32 @@ def test_get_student_summary_blank_name_raises():
 def test_get_student_summary_empty_scores_raises():
     with pytest.raises(ValueError):
         get_student_summary("Bob", [])
+
+
+# ── is_passing ─────────────────────────────────────────────────────────────
+
+
+def test_is_passing_returns_true_for_passing_score():
+    assert is_passing(75.0) is True
+
+
+def test_is_passing_returns_false_for_failing_score():
+    assert is_passing(45.0) is False
+
+
+def test_is_passing_boundary_exactly_60():
+    assert is_passing(60.0) is True
+
+
+def test_is_passing_boundary_just_below_60():
+    assert is_passing(59.9) is False
+
+
+def test_is_passing_invalid_score_above_100():
+    with pytest.raises(ValueError):
+        is_passing(110.0)
+
+
+def test_is_passing_invalid_score_negative():
+    with pytest.raises(ValueError):
+        is_passing(-10.0)
