@@ -45,9 +45,9 @@ student_grade_calculator/
 │   └── test_grades.py      ← pytest test suite
 └── .github/
     └── workflows/
-        └── claude_review.yml  ← GitHub Actions CI workflow
+        └── claude_review.yaml  ← GitHub Actions CI workflow
 ```
 
 ## Off-Limits
 - Do NOT modify CLAUDE.md
-- Do NOT modify claude_review.yml without team approval
+- Do NOT modify claude_review.yaml without team approval
