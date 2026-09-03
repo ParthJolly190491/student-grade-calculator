@@ -111,3 +111,23 @@ def get_student_summary(student_name: str, scores: list[float]) -> str:
         f"  Grade:   {letter}\n"
         f"  GPA:     {gpa}"
     )
+
+
+PASSING_THRESHOLD = 60
+
+
+def is_passing(score: float) -> bool:
+    """Determine whether a numeric score is passing.
+
+    Args:
+        score: Numeric score between 0 and 100.
+
+    Returns:
+        True if the score is at or above the passing threshold, False otherwise.
+
+    Raises:
+        ValueError: If score is outside the range 0 to 100.
+    """
+    if score < 0 or score > 100:
+        raise ValueError(f"Score must be between 0 and 100, got {score}")
+    return score >= PASSING_THRESHOLD
