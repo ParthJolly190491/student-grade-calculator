@@ -10,6 +10,7 @@ from grades_6_12 import (
     get_passing_percentage,
     count_failing,
     get_grade_distribution,
+    find_top_score,
 )
 
 
@@ -152,3 +153,16 @@ def test_get_grade_distribution_all_same_grade():
 def test_get_grade_distribution_empty_list_raises():
     with pytest.raises(ValueError):
         get_grade_distribution([])
+
+
+# ── find_top_score ─────────────────────────────────────────────────────────
+
+def test_find_top_score_returns_highest():
+    assert find_top_score([75, 92, 88, 95]) == 95.0
+
+def test_find_top_score_single_score():
+    assert find_top_score([85]) == 85.0
+
+def test_find_top_score_empty_list_raises():
+    with pytest.raises(ValueError):
+        find_top_score([])
