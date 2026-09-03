@@ -204,3 +204,20 @@ def find_top_score(scores: list[float]) -> float:
     if not scores:
         raise ValueError("scores list cannot be empty")
     return max(scores)
+
+
+def find_lowest_score(scores: list[float]) -> float:
+    """Find the lowest score in a list.
+
+    Args:
+        scores: List of numeric scores between 0 and 100.
+
+    Returns:
+        The lowest score in the list.
+
+    Raises:
+        ValueError: If scores list is empty or any score is out of range.
+    """
+    if not scores:
+        raise ValueError("scores list cannot be empty")
+    return min(scores)

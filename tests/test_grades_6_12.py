@@ -11,6 +11,7 @@ from grades_6_12 import (
     count_failing,
     get_grade_distribution,
     find_top_score,
+    find_lowest_score,
 )
 
 
@@ -166,3 +167,16 @@ def test_find_top_score_single_score():
 def test_find_top_score_empty_list_raises():
     with pytest.raises(ValueError):
         find_top_score([])
+
+
+# ── find_lowest_score ────────────────────────────────────────────────────────
+
+def test_find_lowest_score_returns_lowest():
+    assert find_lowest_score([75, 92, 88, 95]) == 75.0
+
+def test_find_lowest_score_single_score():
+    assert find_lowest_score([85]) == 85.0
+
+def test_find_lowest_score_empty_list_raises():
+    with pytest.raises(ValueError):
+        find_lowest_score([])
