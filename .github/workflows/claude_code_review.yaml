@@ -113,7 +113,7 @@ jobs:
           # We pre-install bun above and pass the path here.
           path_to_bun_executable: ${{ github.workspace }}\bun\bun.exe
           # Use the pre-installed claude.exe on the runner (skips the broken Windows installer)
-          path_to_claude_code_executable: C:\Users\parthjolly\.local\bin\claude.exe
+          path_to_claude_code_executable: C:\claude\claude.exe
           # Use the OmniRoute key, NOT an Anthropic API key.
           anthropic_api_key: ${{ secrets.OMNIROUTE_API_KEY }}
           prompt: |
