@@ -23,21 +23,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add Git Bash and Bun to PATH
+      - name: Add Git Bash to PATH
         run: |
-          # Add Git Bash (from Chocolatey or standard install) to PATH
+          # Add Git Bash to PATH so the action's post-steps can find bash
           if (Test-Path "C:\Program Files\Git\usr\bin\bash.exe") {
             Write-Host "Adding Git Bash to PATH"
             Add-Content $env:GITHUB_PATH "C:\Program Files\Git\usr\bin"
           }
-          # Download and install Bun directly (avoids setup-bun symlink EPERM issue)
-          if (-not (Get-Command bun -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing Bun..."
+
+      - name: Install Bun
+        run: |
+          $BUN_DIR = "${{ github.workspace }}\bun"
+          if (-not (Test-Path "$BUN_DIR\bun.exe")) {
+            Write-Host "Installing Bun to $BUN_DIR"
             Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip"
-            Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:LOCALAPPDATA\bun" -Force
-            Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\bun\bun-windows-x64"
+            New-Item -Path "$BUN_DIR" -ItemType Directory -Force | Out-Null
+            Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$BUN_DIR" -Force
+            Remove-Item "$env:TEMP\bun.zip"
+            Write-Host "Bun installed at $BUN_DIR\bun.exe"
           } else {
-            Write-Host "Bun already installed at $(Get-Command bun | Select-Object -ExpandProperty Source)"
+            Write-Host "Bun already exists at $BUN_DIR\bun.exe"
           }
 
       - name: Install dependencies
@@ -54,6 +59,7 @@ jobs:
           ANTHROPIC_BASE_URL: http://localhost:20128
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.OMNIROUTE_API_KEY }}
         with:
+          path_to_bun_executable: ${{ github.workspace }}\bun\bun.exe
           prompt: |
             Read CLAUDE.md in this repository to understand the project standards.
 
