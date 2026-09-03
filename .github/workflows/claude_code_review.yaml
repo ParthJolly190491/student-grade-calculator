@@ -9,7 +9,7 @@ jobs:
   claude-review:
     name: Claude Code Automated Review
 
-    # Run on self-hosted Windows PC where OmniRoute is running
+    # Must run on the Windows PC where OmniRoute is running
     runs-on: [self-hosted, Windows, X64]
 
     permissions:
@@ -18,8 +18,8 @@ jobs:
       id-token: write
 
     env:
+      # Directory where bun will be installed (workspace is the runner's work dir)
       BUN_DIR: ${{ github.workspace }}\bun
-      BUN_EXE: ${{ github.workspace }}\bun\bun.exe
 
     steps:
       - name: Checkout code
@@ -27,59 +27,84 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add Git Bash to PATH
+      - name: Verify runner
+        shell: powershell
         run: |
-          # Add Git Bash to PATH so the action's post-steps can find bash
-          if (Test-Path "C:\Program Files\Git\usr\bin\bash.exe") {
-            Write-Host "Adding Git Bash to PATH"
-            Add-Content $env:GITHUB_PATH "C:\Program Files\Git\usr\bin"
+          Write-Host "===== RUNNER ====="
+          Write-Host "Computer: $env:COMPUTERNAME"
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          Write-Host "=================="
+
+      - name: Verify OmniRoute
+        shell: powershell
+        env:
+          OMNIROUTE_API_KEY: ${{ secrets.OMNIROUTE_API_KEY }}
+        run: |
+          Write-Host "Testing OmniRoute..."
+
+          $headers = @{
+            "Authorization" = "Bearer $env:OMNIROUTE_API_KEY"
+          }
+
+          try {
+            $response = Invoke-RestMethod `
+              -Uri "http://localhost:20128/v1/models" `
+              -Headers $headers `
+              -Method Get `
+              -TimeoutSec 30
+
+            Write-Host "OmniRoute is reachable."
+            Write-Host ($response | ConvertTo-Json -Depth 5)
+          }
+          catch {
+            Write-Error "Cannot connect to OmniRoute at localhost:20128"
+            Write-Error $_
+            exit 1
           }
 
       - name: Install Bun
+        shell: powershell
         run: |
-          New-Item -Path "$env:BUN_DIR" -ItemType Directory -Force | Out-Null
-          # First check if bun is already available anywhere on PATH
-          $bunCmd = Get-Command bun -ErrorAction SilentlyContinue
-          if ($bunCmd) {
-            Write-Host "Bun found at: $($bunCmd.Source)"
-            Copy-Item -Path $bunCmd.Source -Destination "$env:BUN_DIR\bun.exe" -Force
+          # Skip if already installed in a previous run
+          if (Test-Path "$env:BUN_DIR\bun.exe") {
+            Write-Host "Bun already installed at $env:BUN_DIR"
           } else {
-            Write-Host "Bun not on PATH, downloading..."
-            # Try the latest release directly (avoids redirect from /latest/)
-            Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-windows-x64.zip" -OutFile "$env:TEMP\bun.zip" -TimeoutSec 120
+            Write-Host "Installing Bun to $env:BUN_DIR"
+            New-Item -Path "$env:BUN_DIR" -ItemType Directory -Force | Out-Null
+            Invoke-WebRequest `
+              -Uri "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-windows-x64.zip" `
+              -OutFile "$env:TEMP\bun.zip" `
+              -TimeoutSec 120
             Expand-Archive -Path "$env:TEMP\bun.zip" -DestinationPath "$env:BUN_DIR" -Force
             Remove-Item "$env:TEMP\bun.zip" -ErrorAction SilentlyContinue
+            Write-Host "Bun installed."
           }
-          # Copy bun into the action's own bin directory so its post-steps find it
-          # even though they run in a sub-shell that doesn't inherit GITHUB_PATH.
-          # GITHUB_ACTION_PATH is set by the runner for each action step.
-          Copy-Item -Path "$env:BUN_EXE" -Destination "$env:BUN_DIR\..\..\..\_actions\anthropics\claude-code-action@v1\bin\bun.exe" -Force -ErrorAction SilentlyContinue
-          Write-Host "Bun installed at $env:BUN_EXE"
+          # Add bun's directory to PATH for the action's sub-shells
+          Add-Content $env:GITHUB_PATH "$env:BUN_DIR"
 
       - name: Install dependencies
+        shell: powershell
         run: |
           python -m pip install pytest
 
       - name: Run tests
+        shell: powershell
         run: |
           python -m pytest tests/ -v --tb=short
 
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
         env:
+          # Claude Code sends requests to OmniRoute.
+          # Do NOT add /v1 here.
           ANTHROPIC_BASE_URL: http://localhost:20128
-          # The action reads ANTHROPIC_API_KEY (not ANTHROPIC_AUTH_TOKEN) for auth,
-          # so we map our OMNIROUTE_API_KEY secret to that name.
-          ANTHROPIC_API_KEY: ${{ secrets.OMNIROUTE_API_KEY }}
-          # Pass bun path as env var so the action's internal sub-steps can find it
-          # (the with: input only reaches the action's top-level logic, not sub-steps)
-          PATH_TO_BUN_EXECUTABLE: ${{ github.workspace }}\bun\bun.exe
-          # Prepend bun to PATH for the action's bash sub-shells. GitHub Actions
-          # propagates job-level PATH to all step envs, and $PATH is preserved
-          # correctly when we don't try to append to a non-existent default.
-          PATH: ${{ github.workspace }}\bun;C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Program Files\Git\usr\bin
         with:
+          # Skip the action's internal bun installer (which requires admin/symlinks).
+          # We pre-install bun above and pass the path here.
           path_to_bun_executable: ${{ github.workspace }}\bun\bun.exe
+          # Use the OmniRoute key, NOT an Anthropic API key.
+          anthropic_api_key: ${{ secrets.OMNIROUTE_API_KEY }}
           prompt: |
             Read CLAUDE.md in this repository to understand the project standards.
 
@@ -104,20 +129,29 @@ jobs:
 
             ### BLOCKING ISSUES
 
-            (list each issue with file, function name, and exact problem)
+            List each issue with:
+            - File
+            - Function name
+            - Exact problem
 
             ### WARNINGS
 
-            (list each warning with file and explanation)
+            List each warning with:
+            - File
+            - Function name
+            - Explanation
 
             ### SUMMARY
 
-            (one sentence: APPROVED or CHANGES REQUIRED)
+            One sentence:
+            APPROVED
+            or
+            CHANGES REQUIRED
 
             If there are any BLOCKING ISSUES, end with exactly:
 
             REVIEW_STATUS: BLOCKED
 
-            If there are no blocking issues, end with:
+            If there are no blocking issues, end with exactly:
 
             REVIEW_STATUS: APPROVED
