@@ -166,3 +166,24 @@ def count_failing(scores: list[float]) -> int:
     if not scores:
         raise ValueError("scores list cannot be empty")
     return sum(1 for score in scores if not is_passing(score))
+
+
+def get_grade_distribution(scores: list[float]) -> dict[str, int]:
+    """Compute the count of each letter grade in a list of scores.
+
+    Args:
+        scores: List of numeric scores between 0 and 100.
+
+    Returns:
+        Dictionary mapping each letter grade (A, B, C, D, F) to its count.
+
+    Raises:
+        ValueError: If scores list is empty or any score is out of range.
+    """
+    if not scores:
+        raise ValueError("scores list cannot be empty")
+    distribution: dict[str, int] = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
+    for score in scores:
+        letter = calculate_letter_grade(score)
+        distribution[letter] += 1
+    return distribution
