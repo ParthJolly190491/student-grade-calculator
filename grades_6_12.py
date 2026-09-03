@@ -131,3 +131,21 @@ def is_passing(score: float) -> bool:
     if score < 0 or score > 100:
         raise ValueError(f"Score must be between 0 and 100, got {score}")
     return score >= PASSING_THRESHOLD
+
+
+def get_passing_percentage(scores: list[float]) -> float:
+    """Calculate the percentage of scores that are passing.
+
+    Args:
+        scores: List of numeric scores between 0 and 100.
+
+    Returns:
+        Percentage of passing scores as a float (0 to 100), rounded to 2 decimal places.
+
+    Raises:
+        ValueError: If scores list is empty or any score is out of range.
+    """
+    if not scores:
+        raise ValueError("scores list cannot be empty")
+    passing_count = sum(1 for score in scores if is_passing(score))
+    return round((passing_count / len(scores)) * 100, 2)

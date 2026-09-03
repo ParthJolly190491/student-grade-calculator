@@ -1,11 +1,14 @@
 # tests/test_grades_6_12.py — Student Grade Calculator Tests
 
 import pytest
-from grades_6_12 import (is_passing, 
+from grades_6_12 import (
     calculate_letter_grade,
     calculate_average,
     calculate_gpa,
-    get_student_summary)
+    get_student_summary,
+    is_passing,
+    get_passing_percentage,
+)
 
 
 # ── calculate_letter_grade ─────────────────────────────────────────────────
@@ -76,30 +79,40 @@ def test_get_student_summary_empty_scores_raises():
         get_student_summary("Bob", [])
 
 
-# ── is_passing ─────────────────────────────────────────────────────────────
-
+# ── is_passing ──────────────────────────────────────────────────────────────
 
 def test_is_passing_returns_true_for_passing_score():
-    assert is_passing(75.0) is True
-
+    assert is_passing(75) is True
 
 def test_is_passing_returns_false_for_failing_score():
-    assert is_passing(45.0) is False
-
+    assert is_passing(50) is False
 
 def test_is_passing_boundary_exactly_60():
-    assert is_passing(60.0) is True
+    assert is_passing(60) is True
 
-
-def test_is_passing_boundary_just_below_60():
-    assert is_passing(59.9) is False
-
-
-def test_is_passing_invalid_score_above_100():
+def test_is_passing_invalid_negative():
     with pytest.raises(ValueError):
-        is_passing(110.0)
+        is_passing(-5)
 
-
-def test_is_passing_invalid_score_negative():
+def test_is_passing_invalid_above_100():
     with pytest.raises(ValueError):
-        is_passing(-10.0)
+        is_passing(110)
+
+
+# ── get_passing_percentage ──────────────────────────────────────────────────
+
+def test_get_passing_percentage_all_passing():
+    assert get_passing_percentage([80, 90, 70]) == 100.0
+
+def test_get_passing_percentage_all_failing():
+    assert get_passing_percentage([50, 40, 30]) == 0.0
+
+def test_get_passing_percentage_mixed():
+    assert get_passing_percentage([80, 50, 70, 55]) == 50.0
+
+def test_get_passing_percentage_single_passing():
+    assert get_passing_percentage([75]) == 100.0
+
+def test_get_passing_percentage_empty_list_raises():
+    with pytest.raises(ValueError):
+        get_passing_percentage([])
