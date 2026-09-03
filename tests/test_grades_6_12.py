@@ -1,4 +1,4 @@
-# tests/test_grades.py — Student Grade Calculator Tests
+# tests/test_grades_6_12.py — Student Grade Calculator Tests
 
 import pytest
 from grades_6_12 import (
