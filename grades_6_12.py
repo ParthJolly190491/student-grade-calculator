@@ -149,3 +149,20 @@ def get_passing_percentage(scores: list[float]) -> float:
         raise ValueError("scores list cannot be empty")
     passing_count = sum(1 for score in scores if is_passing(score))
     return round((passing_count / len(scores)) * 100, 2)
+
+
+def count_failing(scores: list[float]) -> int:
+    """Count the number of failing scores in a list.
+
+    Args:
+        scores: List of numeric scores between 0 and 100.
+
+    Returns:
+        Number of scores below the passing threshold.
+
+    Raises:
+        ValueError: If scores list is empty or any score is out of range.
+    """
+    if not scores:
+        raise ValueError("scores list cannot be empty")
+    return sum(1 for score in scores if not is_passing(score))

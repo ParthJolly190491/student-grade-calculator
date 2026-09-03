@@ -8,6 +8,7 @@ from grades_6_12 import (
     get_student_summary,
     is_passing,
     get_passing_percentage,
+    count_failing,
 )
 
 
@@ -116,3 +117,22 @@ def test_get_passing_percentage_single_passing():
 def test_get_passing_percentage_empty_list_raises():
     with pytest.raises(ValueError):
         get_passing_percentage([])
+
+
+# ── count_failing ───────────────────────────────────────────────────────────
+
+def test_count_failing_all_failing():
+    assert count_failing([50, 40, 30]) == 3
+
+def test_count_failing_all_passing():
+    assert count_failing([80, 90, 70]) == 0
+
+def test_count_failing_mixed():
+    assert count_failing([80, 50, 70, 55]) == 2
+
+def test_count_failing_single_failing():
+    assert count_failing([45]) == 1
+
+def test_count_failing_empty_list_raises():
+    with pytest.raises(ValueError):
+        count_failing([])
